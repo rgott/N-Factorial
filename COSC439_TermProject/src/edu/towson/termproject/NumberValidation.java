@@ -11,6 +11,10 @@ public class NumberValidation extends InputVerifier
 	public boolean verify(JComponent input)
 	{
 		String text = ((JTextField)input).getText();
+		if(text.isEmpty())
+		{
+			return true;
+		}
 		try
         {
     		Integer.parseInt(text);
