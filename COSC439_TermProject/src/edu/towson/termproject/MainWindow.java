@@ -1,16 +1,16 @@
 package edu.towson.termproject;
 
 import java.awt.BorderLayout;
+import java.awt.Canvas;
+import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.FlowLayout;
-import java.awt.ScrollPane;
-import java.awt.Scrollbar;
+import java.awt.Graphics;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
-import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -21,9 +21,14 @@ import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.FormSpecs;
 import com.jgoodies.forms.layout.RowSpec;
 
+import javax.swing.ButtonModel;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
+import javax.swing.JComponent;
+
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -47,12 +52,15 @@ public class MainWindow extends JFrame
 	JButton btnCancel;
 	Thread numberFinderThread;
 	JTextField answerTotal;
+	SegmentedProgessBar spb;
 	DefaultListModel<String> mTextList;
 	/**
 	 * Launch the application.
 	 */
 	public static void main(String[] args)
 	{
+		
+		
 		EventQueue.invokeLater(new Runnable()
 		{
 			public void run()
@@ -104,6 +112,20 @@ public class MainWindow extends JFrame
 		JPanel floatRight = new JPanel();
 		floatRight.setLayout(new FlowLayout(FlowLayout.RIGHT));
 		
+		
+		JButton btn = new JButton("BTN");
+		btn.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent arg0)
+			{
+				spb.setMax(new BigInteger("1000"));
+				spb.add(new BigInteger("100"),new BigInteger("200"));
+				spb.repaint();
+			}
+		});
+		floatRight.add(btn);
+		
+		
 		btnCancel = new JButton("Cancel");
 		btnCancel.addActionListener(new ActionListener()
 		{
@@ -112,6 +134,7 @@ public class MainWindow extends JFrame
 				if(numberFinderThread != null && numberFinderThread.isAlive())
 				{
 					numberFinderThread.interrupt();
+					answerTotal.setText("");
 					btnCompute.setEnabled(true);
 					btnCancel.setEnabled(false);
 				}
@@ -132,12 +155,19 @@ public class MainWindow extends JFrame
 					@Override
 					public void run()
 					{
+						spb.setMax(new BigInteger(combination.getText()));
+						
+						
 						answerTotal.setText(StartFind(
+								spb,
 								new BigInteger(stripeSize.getText()),
 								Integer.parseInt(threads.getText()),
 								new BigInteger(combination.getText()), 1000).toString());
 						btnCompute.setEnabled(true);
 						btnCancel.setEnabled(false);
+						
+						spb.repaint();
+						repaint();
 					}
 				});
 				btnCompute.setEnabled(false);
@@ -148,12 +178,18 @@ public class MainWindow extends JFrame
 		floatRight.add(btnCompute);
 		centerPanel.add(floatRight, BorderLayout.SOUTH);
 		contentPane.add(centerPanel,BorderLayout.NORTH);
+		//textList
 		
-		JScrollPane p = new JScrollPane(textList);
+		spb = new SegmentedProgessBar(this);
 		
-		contentPane.add(p, BorderLayout.SOUTH);
+		JScrollPane p = new JScrollPane();
+		
+		contentPane.add(spb, BorderLayout.SOUTH);
 	}
-	
+	public void repaint()
+	{
+		super.repaint();
+	}
 	public void setFormLayout(JPanel panel, int rows)
 	{
 		// create row specification
@@ -179,7 +215,7 @@ public class MainWindow extends JFrame
 		panel.setLayout(new FormLayout(colSpec.toArray(new ColumnSpec[colSpec.size()]),rowSpec.toArray(new RowSpec[rowSpec.size()])));
 	}
 	
-	public static BigInteger StartFind(BigInteger stripeSize,int threads, BigInteger factorial,int elementsTillClean)
+	public static BigInteger StartFind(SegmentedProgessBar spb2, BigInteger stripeSize,int threads, BigInteger factorial,int elementsTillClean)
 	{
 		BigInteger _total = new BigInteger("1");
 		ArrayList<BoolThread> list = new ArrayList<>(elementsTillClean);
@@ -200,7 +236,7 @@ public class MainWindow extends JFrame
 			try
 			{
 				// if takes time to acquire clean list
-				while(!signal.tryAcquire(5 ,TimeUnit.MILLISECONDS) || list.size() == elementsTillClean)
+				while(!signal.tryAcquire(3000 ,TimeUnit.MILLISECONDS) || list.size() == elementsTillClean)
 				{
 					int size = list.size();
 					// clean list
@@ -239,6 +275,8 @@ public class MainWindow extends JFrame
 						i = i.subtract(BigInteger.ONE);
 //						System.out.println(total);
 					}
+//					System.out.println(staticCurrent + " :: " + staticNext);
+					spb2.add(staticCurrent,staticNext);
 					
 //					mTextList.addElement("Release (" + staticCurrent + " - " + staticNext + ")");
 //					System.out.println("Release (" + staticCurrent + " - " + staticNext + ")");
@@ -300,5 +338,67 @@ public class MainWindow extends JFrame
 		return textField;
 	}
 	
-	
+	public class BIPoint
+	{
+		public BigInteger X;
+		public BigInteger Y;
+		public BIPoint(BigInteger X,BigInteger Y)
+		{
+			this.X = X;
+			this.Y = Y;
+		}
+	}
+	@SuppressWarnings("serial")
+	public class SegmentedProgessBar extends JPanel
+	{
+		private ArrayList<BIPoint> Items = new ArrayList<>();
+		
+		BigInteger max;
+
+		public void setMax(BigInteger max)
+		{
+			this.max = max;
+		}
+
+		public SegmentedProgessBar(BigInteger max)
+		{
+			this.max = max;
+		}
+		JFrame frame;
+		public SegmentedProgessBar(JFrame frame)
+		{
+			this.frame = frame;
+		}
+		
+		static final int HEIGHT = 23;
+		public void add(BigInteger start,BigInteger end)
+		{
+			setBounds(0, 0,  0, HEIGHT);
+			Items.add(new BIPoint(start, end));
+			frame.revalidate();
+		}
+		
+		@Override
+		public void paintComponent(Graphics g)
+		{
+			super.paintComponent(g);
+			if(max != null)
+			{
+				
+				g.setColor(Color.green);
+				for (BIPoint item : Items)
+				{
+					g.fillRect(
+							map(item.X,BigInteger.ZERO,max,0,this.getWidth()),
+							0,
+							HEIGHT,
+							map(item.Y,BigInteger.ZERO,max,0,this.getWidth()));
+				}
+			}
+		}
+		private int map(BigInteger x, BigInteger in_min, BigInteger in_max, int out_min, int out_max)
+		{
+		  return (x.subtract(in_min)).multiply(new BigInteger(Integer.toString(out_max - out_min))).divide(in_max.subtract(in_min)).add(new BigInteger(Integer.toString(out_min))).intValue();
+		}
+	}
 }
