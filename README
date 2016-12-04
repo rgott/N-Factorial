@@ -1,11 +1,14 @@
 Factorial Calculator
 
 Run the application
+Either use the current settings or;
+
+Enter the number of numbers to multiply per thread.
 Enter the amount of threads.
-Enter the amount of processes per thread.
+Enter the amount of threads to process before summing.
 Enter the number to factor.
 
 Wait.
 
-Answer should appear in text box.
+Answer should appear in text box marked total.
 
