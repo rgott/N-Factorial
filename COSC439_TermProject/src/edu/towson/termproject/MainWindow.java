@@ -35,6 +35,7 @@ public class MainWindow extends JFrame
 	JTextField elementsTillCleaned;
 	JTextField answerTotal;
 	JTextField answerTotalLength;
+	JTextField timeTaken;
 	
 	JButton btnCompute;
 	JButton btnCancel;
@@ -82,8 +83,8 @@ public class MainWindow extends JFrame
 	public MainWindow()
 	{
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 450, 273);
-		setMinimumSize(new Dimension(350, 273));
+		setBounds(100, 100, 450, 310);
+		setMinimumSize(new Dimension(350, 310));
 		
 		
 		contentPane = new JPanel();
@@ -95,7 +96,7 @@ public class MainWindow extends JFrame
 		centerPanel.setLayout(new BorderLayout());
 		
 		JPanel fields = new JPanel();
-		setFormLayout(fields, 5);
+		setFormLayout(fields, 7);
 		
 		// Add fields for options
 		stripeSize = createField(fields, "Numbers per thread:");
@@ -110,6 +111,9 @@ public class MainWindow extends JFrame
 		answerTotalLength.setEditable(false);
 		answerTotalLength.setInputVerifier(null);
 		
+		timeTaken = createField(fields, "Time taken:");
+		timeTaken.setEditable(false);
+		timeTaken.setInputVerifier(null);
 		
 		centerPanel.add(fields,BorderLayout.CENTER);
 		
@@ -161,15 +165,41 @@ public class MainWindow extends JFrame
 						
 						progressStatus.setText("Running factorials");
 						
+						long start = System.nanoTime();
 						BigInteger retNum = StartFind(
 								startedProgress,
 								new BigInteger(stripeSize.getText()),
 								Integer.parseInt(numthreads.getText()),
 								factorial,
 								Integer.parseInt(elementsTillCleaned.getText()));
+						long end = System.nanoTime();
+						
+						end = end - start;
+						if(end > 1000000)
+						{
+							timeTaken.setText(Long.toString(end / 1000000) + " milliseconds");
+						}
+						else if(end > 1000000000)
+						{
+							timeTaken.setText(Long.toString(end / 1000000000) + " seconds");
+						}
+						else if(end > 1000000000000L)
+						{
+							timeTaken.setText(Long.toString(end / 1000000000000L) + " minutes");
+						}
+						else
+						{
+							timeTaken.setText(Long.toString(end) + " nanoseconds");
+						}
+						
 						
 						if(retNum != null)
+						{
+							answerTotal.setText("Loading...");
+							answerTotalLength.setText("Loading...");
+							
 							answerTotal.setText(retNum.toString());
+						}
 						else
 							answerTotal.setText("");
 						
