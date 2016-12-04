@@ -2,16 +2,19 @@ package edu.towson.termproject;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
@@ -27,10 +30,11 @@ public class MainWindow extends JFrame
 	static JLabel progressStatus;
 	
 	JTextField stripeSize;
-	JTextField threads;
+	JTextField numthreads;
 	JTextField factorialText;
 	JTextField elementsTillCleaned;
 	JTextField answerTotal;
+	JTextField answerTotalLength;
 	
 	JButton btnCompute;
 	JButton btnCancel;
@@ -51,6 +55,18 @@ public class MainWindow extends JFrame
 				try
 				{
 					MainWindow frame = new MainWindow();
+					frame.setTitle("N Factorial finder");
+					try
+					{
+						frame.setIconImage(ImageIO.read(new File("Resource/mainwindowicon.png")));
+					}
+					catch(Exception e)
+					{
+						System.out.println("Icon cannot be found");
+						e.printStackTrace();
+						// The window will just not have an icon
+					}
+					
 					frame.setVisible(true);
 				} catch (Exception e)
 				{
@@ -66,8 +82,10 @@ public class MainWindow extends JFrame
 	public MainWindow()
 	{
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 450, 300);
-
+		setBounds(100, 100, 450, 273);
+		setMinimumSize(new Dimension(350, 273));
+		
+		
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setLayout(new BorderLayout(0, 0));
@@ -81,12 +99,17 @@ public class MainWindow extends JFrame
 		
 		// Add fields for options
 		stripeSize = createField(fields, "Numbers per thread:");
-		threads = createField(fields, "Threads:");
-		factorialText = createField(fields, "Enter Factorial to find:");
+		numthreads = createField(fields, "Threads:");
 		elementsTillCleaned = createField(fields, "Elements till multiply set:");
+		factorialText = createField(fields, "Enter Factorial to find:");
 		answerTotal = createField(fields, "Total:");
 		answerTotal.setEditable(false);
 		answerTotal.setInputVerifier(null);
+		
+		answerTotalLength = createField(fields, "Answer num characters:");
+		answerTotalLength.setEditable(false);
+		answerTotalLength.setInputVerifier(null);
+		
 		
 		centerPanel.add(fields,BorderLayout.CENTER);
 		
@@ -118,7 +141,7 @@ public class MainWindow extends JFrame
 			public void actionPerformed(ActionEvent arg0)
 			{
 				// if any fields are empty then do not compute
-				if(factorialText.getText().isEmpty() || threads.getText().isEmpty() || stripeSize.getText().isEmpty())
+				if(factorialText.getText().isEmpty() || numthreads.getText().isEmpty() || stripeSize.getText().isEmpty())
 				{
 					progressStatus.setText("ERROR: fill in all fields");
 					return;
@@ -141,7 +164,7 @@ public class MainWindow extends JFrame
 						BigInteger retNum = StartFind(
 								startedProgress,
 								new BigInteger(stripeSize.getText()),
-								Integer.parseInt(threads.getText()),
+								Integer.parseInt(numthreads.getText()),
 								factorial,
 								Integer.parseInt(elementsTillCleaned.getText()));
 						
@@ -149,6 +172,8 @@ public class MainWindow extends JFrame
 							answerTotal.setText(retNum.toString());
 						else
 							answerTotal.setText("");
+						
+						answerTotalLength.setText(Integer.toString(answerTotal.getText().length()));
 						
 						btnCompute.setEnabled(true);
 						btnCancel.setEnabled(false);
@@ -183,7 +208,7 @@ public class MainWindow extends JFrame
 		
 		
 		stripeSize.setText("100");
-		threads.setText("10");
+		numthreads.setText("10");
 		factorialText.setText("123456");
 		elementsTillCleaned.setText("1000");
 	}
@@ -211,11 +236,25 @@ public class MainWindow extends JFrame
 				// if takes time to acquire clean list
 				while(!signal.tryAcquire(750 ,TimeUnit.MILLISECONDS) || list.size() == elementsTillClean)
 				{
-//					int size = list.size();// used for debugging in print statement
-					
+					progressStatus.setText("Cleaning list");
 					// clean list
+					int counter = 0;
 					for (int i = 0; i < list.size(); i++) // check all items in the list 
 					{
+						if(counter++ % 50 == 0)
+						{
+							progressStatus.setText("Cleaning list " + (list.size() - i) + " items remain.");
+							try
+							{
+								if(signal.tryAcquire(10, TimeUnit.MILLISECONDS)) // used to see if the process was interupted
+									signal.release();
+								
+							}catch(InterruptedException e)
+							{
+								progressStatus.setText("Cancelled");
+								return null;
+							}
+						}
 						if(!list.get(i).isAlive()) // if thread killed then add to toal and remove element
 						{
 							_total = _total.multiply(list.get(i).total);
@@ -223,7 +262,7 @@ public class MainWindow extends JFrame
 							i--; // since element is removed, item is i-1
 						}
 					}
-//					System.out.println("CLEANED LIST REMOVED: " + (size - list.size())); // "int size" defined above
+					progressStatus.setText("Running factorials");
 				}
 			} catch (InterruptedException e)
 			{
@@ -259,13 +298,19 @@ public class MainWindow extends JFrame
 			
 			current = staticNext; // move to next
 		}
-		
-		progressStatus.setText("(Finalizing) Merging lists");
-		for (BoolThread item : list)
+
+		progressStatus.setText("Joining threads");
+		startedProgess.setMax(new BigInteger(Integer.toString(list.size())));
+		startedProgess.setReversed(false);
+
+		int counter = 1;
+		for (int i = 0; i < list.size(); i++)
 		{
 			try
 			{
-				item.join();
+				list.get(i).join();
+				_total = _total.multiply(list.get(i).total);
+				startedProgess.update(new BigInteger(Integer.toString(counter++)));
 			} catch (InterruptedException e)
 			{
 				System.out.println("INTERUPTION EXCEPTION");
@@ -274,16 +319,7 @@ public class MainWindow extends JFrame
 				return null;
 			}
 		}
-		
-		for (int i = 0; i < list.size(); i++)
-		{
-			if(!list.get(i).isAlive())
-			{
-				_total = _total.multiply(list.get(i).total);
-				list.remove(i);
-				i--;
-			}
-		}
+		startedProgess.setReversed(true);
 		progressStatus.setText("Complete");
 		return _total;
 	}

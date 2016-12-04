@@ -45,4 +45,9 @@ public class SegmentedProgessBar extends JProgressBar
 	{
 	  return (x.subtract(in_min)).multiply(new BigInteger(Integer.toString(out_max - out_min))).divide(in_max.subtract(in_min)).add(new BigInteger(Integer.toString(out_min))).intValue();
 	}
+
+	public void setReversed(boolean b)
+	{
+		reversed = b;
+	}
 }
