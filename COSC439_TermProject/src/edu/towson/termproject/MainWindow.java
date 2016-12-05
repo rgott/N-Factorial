@@ -246,7 +246,7 @@ public class MainWindow extends JFrame
 	public static BigInteger StartFind(SegmentedProgessBar startedProgess, BigInteger stripeSize,int threads, BigInteger factorial,int elementsTillClean)
 	{
 		BigInteger _total = new BigInteger("1"); // must be one because its multiplied 1*x = x
-		ArrayList<BoolThread> list = new ArrayList<>(elementsTillClean);
+		ArrayList<BigIntThread> list = new ArrayList<>(elementsTillClean);
 		
 		BigInteger current = factorial;
 
@@ -305,7 +305,7 @@ public class MainWindow extends JFrame
 			BigInteger staticNext = next;
 			startedProgess.update(staticNext);
 			
-			BoolThread runThread = new BoolThread()
+			BigIntThread runThread = new BigIntThread()
 			{
 				@Override
 				public void run()
