@@ -264,8 +264,19 @@ public class MainWindow extends JFrame
 			try
 			{
 				// if takes time to acquire clean list
-				while(!signal.tryAcquire(750 ,TimeUnit.MILLISECONDS) || list.size() == elementsTillClean)
+				while(true)
 				{
+					if(signal.tryAcquire(750 ,TimeUnit.MILLISECONDS)) // takes a permit if true
+					{
+						if(list.size() != elementsTillClean) 
+						{ // if no cleaning is needed
+							break;
+						}
+						else
+						{// if can aquire signal but need to clean list then clean list
+							signal.release();
+						}
+					}
 					progressStatus.setText("Cleaning list");
 					// clean list
 					int counter = 0;
