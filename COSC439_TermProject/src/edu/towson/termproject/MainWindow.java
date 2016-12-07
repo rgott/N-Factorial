@@ -103,6 +103,7 @@ public class MainWindow extends JFrame
 		numthreads = createField(fields, "Threads:");
 		elementsTillCleaned = createField(fields, "Elements till multiply set:");
 		factorialText = createField(fields, "Enter Factorial to find:");
+		
 		answerTotal = createField(fields, "Total:");
 		answerTotal.setEditable(false);
 		answerTotal.setInputVerifier(null);
@@ -119,6 +120,21 @@ public class MainWindow extends JFrame
 		
 		JPanel floatRight = new JPanel();
 		floatRight.setLayout(new FlowLayout(FlowLayout.RIGHT));
+		
+		
+		JButton copyBtn = new JButton("Copy");
+		copyBtn.addActionListener(new ActionListener()
+		{
+
+			@Override
+			public void actionPerformed(ActionEvent arg0)
+			{
+System.out.println("BLAH");
+			}
+		
+		});
+		copyBtn.setEnabled(false);
+		floatRight.add(copyBtn);
 		
 		btnCancel = new JButton("Cancel");
 		btnCancel.addActionListener(new ActionListener()
