@@ -52,7 +52,7 @@ public class SystemInfo extends JFrame
 	 */
 	public SystemInfo()
 	{
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
 		
 		setBounds(200, 100, 450, 300);
 		contentPane = new JPanel();

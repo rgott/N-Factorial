@@ -125,6 +125,35 @@ public class MainWindow extends JFrame
 		JPanel floatRight = new JPanel();
 		floatRight.setLayout(new FlowLayout(FlowLayout.RIGHT));
 		
+		JButton showSysInfo = new JButton("System Info");
+		showSysInfo.addActionListener(new ActionListener()
+		{
+			@Override
+			public void actionPerformed(ActionEvent e)
+			{
+				try
+				{
+					SystemInfo frame = new SystemInfo();
+					frame.setTitle("System Information");
+					try
+					{
+						frame.setIconImage(ImageIO.read(new File("Resource/mainwindowicon.png")));
+					}
+					catch(Exception ex)
+					{
+						System.out.println("Icon cannot be found");
+						ex.printStackTrace();
+						// The window will just not have an icon
+					}
+					
+					frame.setVisible(true);
+				} catch (Exception ex)
+				{
+					ex.printStackTrace();
+				}
+			}
+		});
+		floatRight.add(showSysInfo);
 		
 		JButton copyBtn = new JButton("Copy");
 		copyBtn.addActionListener(new ActionListener()
