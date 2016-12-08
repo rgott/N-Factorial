@@ -129,8 +129,11 @@ public class MainWindow extends JFrame
 		copyBtn.addActionListener(new ActionListener()
 		{
 			@Override
-			public void actionPerformed(ActionEvent arg0)
+			public void actionPerformed(ActionEvent e)
 			{
+
+				
+				
 				StringSelection stringSelection = new StringSelection (answerTotal.getText());
 				Clipboard clpbrd = Toolkit.getDefaultToolkit ().getSystemClipboard ();
 				clpbrd.setContents (stringSelection, null);
@@ -216,6 +219,7 @@ public class MainWindow extends JFrame
 				});
 				btnCompute.setEnabled(false);
 				btnCancel.setEnabled(true);
+				copyBtn.setEnabled(true);
 				
 				numberFinderThread.start();// start thread immediately
 			}
