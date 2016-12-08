@@ -7,12 +7,14 @@ import java.awt.EventQueue;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
+import java.awt.Toolkit;
 import java.io.File;
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -43,6 +45,7 @@ public class MainWindow extends JFrame
 	Thread numberFinderThread;
 	
 	SegmentedProgessBar startedProgress;
+	JProgressBar listSizeProgressBar;
 	
 	/**
 	 * Launch the application.
@@ -83,8 +86,8 @@ public class MainWindow extends JFrame
 	public MainWindow()
 	{
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 450, 310);
-		setMinimumSize(new Dimension(350, 310));
+		setBounds(100, 100, 450, 340);
+		setMinimumSize(new Dimension(350, 340));
 		
 		
 		contentPane = new JPanel();
@@ -129,7 +132,10 @@ public class MainWindow extends JFrame
 			@Override
 			public void actionPerformed(ActionEvent arg0)
 			{
-System.out.println("BLAH");
+				System.out.println("BLAH");
+				StringSelection stringSelection = new StringSelection (answerTotal.getText());
+				Clipboard clpbrd = Toolkit.getDefaultToolkit ().getSystemClipboard ();
+				clpbrd.setContents (stringSelection, null);
 			}
 		
 		});
@@ -160,6 +166,7 @@ System.out.println("BLAH");
 		{
 			public void actionPerformed(ActionEvent arg0)
 			{
+				
 				// if any fields are empty then do not compute
 				if(factorialText.getText().isEmpty() || numthreads.getText().isEmpty() || stripeSize.getText().isEmpty())
 				{
@@ -171,19 +178,20 @@ System.out.println("BLAH");
 				answerTotal.setText("");
 				btnCompute.setEnabled(false);
 				
-				numberFinderThread = new Thread(new Runnable()
+				numberFinderThread = new Thread(new Runnable() // keeps ui running
 				{
 					@Override
 					public void run()
 					{
 						BigInteger factorial = new BigInteger(factorialText.getText());
-						startedProgress.setMax(factorial);
+						
 						
 						progressStatus.setText("Running factorials");
 						
 						long start = System.nanoTime();
 						BigInteger retNum = StartFind(
 								startedProgress,
+								listSizeProgressBar,
 								new BigInteger(stripeSize.getText()),
 								Integer.parseInt(numthreads.getText()),
 								factorial,
@@ -191,23 +199,7 @@ System.out.println("BLAH");
 						long end = System.nanoTime();
 						
 						end = end - start;
-						if(end > 1000000)
-						{
-							timeTaken.setText(Long.toString(end / 1000000) + " milliseconds");
-						}
-						else if(end > 1000000000)
-						{
-							timeTaken.setText(Long.toString(end / 1000000000) + " seconds");
-						}
-						else if(end > 1000000000000L)
-						{
-							timeTaken.setText(Long.toString(end / 1000000000000L) + " minutes");
-						}
-						else
-						{
-							timeTaken.setText(Long.toString(end) + " nanoseconds");
-						}
-						
+						timeTaken.setText(Long.toString(end / 1000000) + " milliseconds");
 						
 						if(retNum != null)
 						{
@@ -241,7 +233,7 @@ System.out.println("BLAH");
 		JPanel panel = new JPanel();
 		panel.setLayout(new FormLayout(
 				new ColumnSpec[]{ColumnSpec.decode("150px:grow")},
-				new RowSpec[]{ FormSpecs.DEFAULT_ROWSPEC,FormSpecs.DEFAULT_ROWSPEC}));
+				new RowSpec[]{ FormSpecs.DEFAULT_ROWSPEC,FormSpecs.DEFAULT_ROWSPEC,FormSpecs.DEFAULT_ROWSPEC,FormSpecs.DEFAULT_ROWSPEC}));
 		
 		progressStatus = new JLabel("");
 		panel.add(progressStatus,"1, 1");
@@ -250,8 +242,11 @@ System.out.println("BLAH");
 		startedProgress.setForeground(Color.green);
 		panel.add(startedProgress,"1, 2");
 		
-		contentPane.add(panel,BorderLayout.SOUTH);
+		listSizeProgressBar = new JProgressBar();
+		listSizeProgressBar.setForeground(Color.blue);
+		panel.add(listSizeProgressBar,"1,3");
 		
+		contentPane.add(panel,BorderLayout.SOUTH);
 		
 		stripeSize.setText("100");
 		numthreads.setText("10");
@@ -259,18 +254,52 @@ System.out.println("BLAH");
 		elementsTillCleaned.setText("1000");
 	}
 	
-	public static BigInteger StartFind(SegmentedProgessBar startedProgess, BigInteger stripeSize,int threads, BigInteger factorial,int elementsTillClean)
+	public static BigInteger StartFind(SegmentedProgessBar startedProgess,JProgressBar listSizeProgressBar, BigInteger stripeSize,int threads, BigInteger factorial,int elementsTillClean)
 	{
-		BigInteger _total = new BigInteger("1"); // must be one because its multiplied 1*x = x
-		ArrayList<BigIntThread> list = new ArrayList<>(elementsTillClean);
+		listSizeProgressBar.setMaximum(elementsTillClean);
+		listSizeProgressBar.setMinimum(0);
+		listSizeProgressBar.setValue(0);
+		
+		startedProgess.setMax(factorial);
+		
+		ArrayBlockingQueue<BigInteger> list = new ArrayBlockingQueue<>(elementsTillClean);
+		
+		BigIntThread masterCount = new BigIntThread()
+		{
+			@Override
+			public void run()
+			{
+				try
+				{
+					total = new BigInteger("1");// must be one because its multiplied 1*x = x
+					
+					BigInteger[] result = factorial.divideAndRemainder(stripeSize);
+					BigInteger i = result[0].add((result[1].compareTo(BigInteger.ZERO) == 0)?BigInteger.ZERO:BigInteger.ONE);
+					result = null; // make it easy for garbage collector
+					
+//					System.out.println(i); // number of thread that will run
+					while(i.compareTo(BigInteger.ZERO) == 1)
+					{
+						total = total.multiply(list.take());
+						listSizeProgressBar.setValue(listSizeProgressBar.getValue() - 1);
+						i = i.subtract(BigInteger.ONE);
+					}
+				} catch (InterruptedException e)
+				{
+					progressStatus.setText("Cancelled");
+					e.printStackTrace();
+				}
+			}
+		};
+		masterCount.start();
 		
 		BigInteger current = factorial;
+		BigInteger next = current.subtract(stripeSize);
 
-		boolean check = true;
 		Semaphore signal = new Semaphore(threads);
+		boolean check = true;
 		while(check)
 		{
-			BigInteger next = current.subtract(stripeSize);
 			if(next.compareTo(BigInteger.ONE) != 1)
 			{
 				next = BigInteger.ONE;
@@ -279,106 +308,69 @@ System.out.println("BLAH");
 			
 			try
 			{
-				// if takes time to acquire clean list
-				while(true)
-				{
-					if(signal.tryAcquire(750 ,TimeUnit.MILLISECONDS)) // takes a permit if true
-					{
-						if(list.size() != elementsTillClean) 
-						{ // if no cleaning is needed
-							break;
-						}
-						else
-						{// if can aquire signal but need to clean list then clean list
-							signal.release();
-						}
-					}
-					progressStatus.setText("Cleaning list");
-					// clean list
-					int counter = 0;
-					for (int i = 0; i < list.size(); i++) // check all items in the list 
-					{
-						if(counter++ % 50 == 0)
-						{
-							progressStatus.setText("Cleaning list " + (list.size() - i) + " items remain.");
-							try
-							{
-								if(signal.tryAcquire(10, TimeUnit.MILLISECONDS)) // used to see if the process was interupted
-									signal.release();
-								
-							}catch(InterruptedException e)
-							{
-								progressStatus.setText("Cancelled");
-								return null;
-							}
-						}
-						if(!list.get(i).isAlive()) // if thread killed then add to toal and remove element
-						{
-							_total = _total.multiply(list.get(i).total);
-							list.remove(i);
-							i--; // since element is removed, item is i-1
-						}
-					}
-					progressStatus.setText("Running factorials");
-				}
+				signal.acquire();
 			} catch (InterruptedException e)
 			{
 				e.printStackTrace();
 				progressStatus.setText("Cancelled");
+				listSizeProgressBar.setValue(0);
 				return null; // Interruption is probably caused by user cancellation  
 			}
-
-			BigInteger staticCurrent = current;
-			BigInteger staticNext = next;
-			startedProgess.update(staticNext);
-			
-			BigIntThread runThread = new BigIntThread()
-			{
-				@Override
-				public void run()
-				{
-//					System.out.println("Thread Start (" + staticCurrent + " - " + staticNext + ")");
-					
-					total = staticCurrent;
-					BigInteger i = staticCurrent.subtract(BigInteger.ONE);
-					while(i.compareTo(staticNext) == 1)
-					{
-						total = total.multiply(i);
-						i = i.subtract(BigInteger.ONE);
-					}
-//					System.out.println("Release (" + staticCurrent + " - " + staticNext + ")");
-					signal.release();
-				}
-			};
-			runThread.start();
-			list.add(runThread);
-			
-			current = staticNext; // move to next
-		}
-
-		progressStatus.setText("Joining threads");
-		startedProgess.setMax(new BigInteger(Integer.toString(list.size())));
-		startedProgess.setReversed(false);
-
-		int counter = 1;
-		for (int i = 0; i < list.size(); i++)
-		{
-			try
-			{
-				list.get(i).join();
-				_total = _total.multiply(list.get(i).total);
-				startedProgess.update(new BigInteger(Integer.toString(counter++)));
-			} catch (InterruptedException e)
-			{
-				System.out.println("INTERUPTION EXCEPTION");
-				progressStatus.setText("Cancelled1");
-				e.printStackTrace();
-				return null;
+				
+			listSizeProgressBar.setValue(listSizeProgressBar.getValue() + 1); // update progress bar
+			{ // code block to create a thread and advance the pointers
+				// create thread
+				BigIntThread runThread = createThread(current,next,signal,list);
+				runThread.start();
+				
+				// advance pointers
+				startedProgess.update(current);
+				current = next; // move to next
+				next = current.subtract(stripeSize);
 			}
 		}
-		startedProgess.setReversed(true);
-		progressStatus.setText("Complete");
-		return _total;
+		
+		try
+		{
+			masterCount.join();
+			progressStatus.setText("Complete");
+			listSizeProgressBar.setValue(0);
+			return masterCount.total;
+		} catch (InterruptedException e)
+		{
+			e.printStackTrace();
+		}
+		progressStatus.setText("Cancelled");			 
+		listSizeProgressBar.setValue(0);
+		return null;
+	}
+	
+	private static BigIntThread createThread(BigInteger staticCurrent,BigInteger staticNext, Semaphore signal,ArrayBlockingQueue<BigInteger> concurrencyList)
+	{
+		return new BigIntThread()
+		{
+			@Override
+			public void run()
+			{
+				total = staticCurrent;
+				BigInteger i = staticCurrent.subtract(BigInteger.ONE);
+				while(i.compareTo(staticNext) == 1)
+				{
+					total = total.multiply(i);
+					i = i.subtract(BigInteger.ONE);
+				}
+				
+				try
+				{
+					concurrencyList.put(total);
+				} catch (InterruptedException e)
+				{
+					System.out.println("SOMETHING WENT WRONG WITHIN A THREAD.");
+					e.printStackTrace();
+				}
+				signal.release();
+			}
+		};
 	}
 	
 	
@@ -422,5 +414,4 @@ System.out.println("BLAH");
 		
 		panel.setLayout(new FormLayout(colSpec.toArray(new ColumnSpec[colSpec.size()]),rowSpec.toArray(new RowSpec[rowSpec.size()])));
 	}
-	
 }
