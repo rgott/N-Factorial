@@ -45,7 +45,7 @@ public class MainWindow extends JFrame
 	
 	Thread numberFinderThread;
 	
-	SegmentedProgessBar startedProgress;
+	BigIntProgessBar startedProgress;
 	JProgressBar listSizeProgressBar;
 	
 	/**
@@ -245,7 +245,7 @@ public class MainWindow extends JFrame
                 progressStatus = new JLabel("");
 		panel.add(progressStatus,"1, 3");
 		
-		startedProgress = new SegmentedProgessBar(this,true);
+		startedProgress = new BigIntProgessBar(this,true);
 		startedProgress.setForeground(Color.green);
 		panel.add(startedProgress,"1, 4");
 		
@@ -259,7 +259,7 @@ public class MainWindow extends JFrame
 		elementsTillCleaned.setText("1000");
 	}
 	
-	public static BigInteger StartFind(SegmentedProgessBar startedProgess,JProgressBar listSizeProgressBar, BigInteger stripeSize,int threads, BigInteger factorial,int elementsTillClean)
+	public static BigInteger StartFind(BigIntProgessBar startedProgess,JProgressBar listSizeProgressBar, BigInteger stripeSize,int threads, BigInteger factorial,int elementsTillClean)
 	{
 		listSizeProgressBar.setMaximum(elementsTillClean);
 		listSizeProgressBar.setMinimum(0);
