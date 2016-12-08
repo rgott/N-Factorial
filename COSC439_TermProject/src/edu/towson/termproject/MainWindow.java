@@ -30,6 +30,7 @@ public class MainWindow extends JFrame
 {
 	private JPanel contentPane;
 	static JLabel progressStatus;
+        static JLabel queueStatus;
 	
 	JTextField stripeSize;
 	JTextField numthreads;
@@ -44,7 +45,7 @@ public class MainWindow extends JFrame
 	
 	Thread numberFinderThread;
 	
-	BigIntProgessBar startedProgress;
+	SegmentedProgessBar startedProgress;
 	JProgressBar listSizeProgressBar;
 	
 	/**
@@ -105,13 +106,13 @@ public class MainWindow extends JFrame
 		stripeSize = createField(fields, "Numbers per thread:");
 		numthreads = createField(fields, "Threads:");
 		elementsTillCleaned = createField(fields, "Elements in queue:");
-		factorialText = createField(fields, "Enter Factorial to find:");
+		factorialText = createField(fields, "Enter num to Factorialize:");
 		
-		answerTotal = createField(fields, "Total:");
+		answerTotal = createField(fields, "Factorial Found:");
 		answerTotal.setEditable(false);
 		answerTotal.setInputVerifier(null);
 		
-		answerTotalLength = createField(fields, "Answer num characters:");
+		answerTotalLength = createField(fields, "Factorial Length:");
 		answerTotalLength.setEditable(false);
 		answerTotalLength.setInputVerifier(null);
 		
@@ -125,43 +126,15 @@ public class MainWindow extends JFrame
 		floatRight.setLayout(new FlowLayout(FlowLayout.RIGHT));
 		
 		
-		JButton showInfo = new JButton("System Information");
-		showInfo.addActionListener(new ActionListener()
-		{
-			@Override
-			public void actionPerformed(ActionEvent e)
-			{
-				try
-				{
-					SystemInfo frame = new SystemInfo();
-					frame.setTitle("System Information");
-					try
-					{
-						frame.setIconImage(ImageIO.read(new File("Resource/mainwindowicon.png")));
-					}
-					catch(Exception ex)
-					{
-						System.out.println("Icon cannot be found");
-						ex.printStackTrace();
-						// The window will just not have an icon
-					}
-					
-					frame.setVisible(true);
-				} catch (Exception ex)
-				{
-					ex.printStackTrace();
-				}
-			}
-		});
-		floatRight.add(showInfo);
-		
-		
 		JButton copyBtn = new JButton("Copy");
 		copyBtn.addActionListener(new ActionListener()
 		{
 			@Override
 			public void actionPerformed(ActionEvent e)
 			{
+
+				
+				
 				StringSelection stringSelection = new StringSelection (answerTotal.getText());
 				Clipboard clpbrd = Toolkit.getDefaultToolkit ().getSystemClipboard ();
 				clpbrd.setContents (stringSelection, null);
@@ -203,6 +176,7 @@ public class MainWindow extends JFrame
 				}
 				
 				progressStatus.setText("");
+                                queueStatus.setText("");
 				answerTotal.setText("");
 				btnCompute.setEnabled(false);
 				
@@ -262,17 +236,20 @@ public class MainWindow extends JFrame
 		panel.setLayout(new FormLayout(
 				new ColumnSpec[]{ColumnSpec.decode("150px:grow")},
 				new RowSpec[]{ FormSpecs.DEFAULT_ROWSPEC,FormSpecs.DEFAULT_ROWSPEC,FormSpecs.DEFAULT_ROWSPEC,FormSpecs.DEFAULT_ROWSPEC}));
-		
-		progressStatus = new JLabel("");
-		panel.add(progressStatus,"1, 1");
-		
-		startedProgress = new BigIntProgessBar(this,true);
-		startedProgress.setForeground(Color.green);
-		panel.add(startedProgress,"1, 2");
-		
+		queueStatus = new JLabel("");
+                panel.add(queueStatus,"1, 1");
 		listSizeProgressBar = new JProgressBar();
-		listSizeProgressBar.setForeground(Color.blue);
-		panel.add(listSizeProgressBar,"1,3");
+		listSizeProgressBar.setForeground(Color.yellow);
+		panel.add(listSizeProgressBar,"1,2");
+		
+                progressStatus = new JLabel("");
+		panel.add(progressStatus,"1, 3");
+		
+		startedProgress = new SegmentedProgessBar(this,true);
+		startedProgress.setForeground(Color.green);
+		panel.add(startedProgress,"1, 4");
+		
+                
 		
 		contentPane.add(panel,BorderLayout.SOUTH);
 		
@@ -282,7 +259,7 @@ public class MainWindow extends JFrame
 		elementsTillCleaned.setText("1000");
 	}
 	
-	public static BigInteger StartFind(BigIntProgessBar startedProgess,JProgressBar listSizeProgressBar, BigInteger stripeSize,int threads, BigInteger factorial,int elementsTillClean)
+	public static BigInteger StartFind(SegmentedProgessBar startedProgess,JProgressBar listSizeProgressBar, BigInteger stripeSize,int threads, BigInteger factorial,int elementsTillClean)
 	{
 		listSizeProgressBar.setMaximum(elementsTillClean);
 		listSizeProgressBar.setMinimum(0);
@@ -303,20 +280,20 @@ public class MainWindow extends JFrame
 					
 					BigInteger[] result = factorial.divideAndRemainder(stripeSize);
 					BigInteger i = result[0].add((result[1].compareTo(BigInteger.ZERO) == 0)?BigInteger.ZERO:BigInteger.ONE);
-					result = null; // make it easy for garbage collector
+                                        result = null; // make it easy for garbage collector
 					
 //					System.out.println(i); // number of thread that will run
 					while(i.compareTo(BigInteger.ZERO) == 1)
 					{
 						total = total.multiply(list.take());
 						listSizeProgressBar.setValue(listSizeProgressBar.getValue() - 1);
+                                                queueStatus.setText("Threads Appending");
 						i = i.subtract(BigInteger.ONE);
 					}
 				} catch (InterruptedException e)
 				{
 					progressStatus.setText("Cancelled");
-					startedProgess.setValue(startedProgess.getMinimum());
-					listSizeProgressBar.setValue(0);
+                                        queueStatus.setText("Cancelled");
 					e.printStackTrace();
 				}
 			}
@@ -343,7 +320,7 @@ public class MainWindow extends JFrame
 			{
 				e.printStackTrace();
 				progressStatus.setText("Cancelled");
-				startedProgess.setValue(startedProgess.getMinimum());
+                                queueStatus.setText("Cancelled");
 				listSizeProgressBar.setValue(0);
 				return null; // Interruption is probably caused by user cancellation  
 			}
@@ -365,15 +342,15 @@ public class MainWindow extends JFrame
 		{
 			masterCount.join();
 			progressStatus.setText("Complete");
+                        queueStatus.setText("");
 			listSizeProgressBar.setValue(0);
-			startedProgess.setValue(startedProgess.getMaximum());
 			return masterCount.total;
 		} catch (InterruptedException e)
 		{
 			e.printStackTrace();
 		}
-		progressStatus.setText("Cancelled");	
-		startedProgess.setValue(startedProgess.getMinimum());
+		progressStatus.setText("Cancelled");
+                queueStatus.setText("Cancelled");
 		listSizeProgressBar.setValue(0);
 		return null;
 	}
