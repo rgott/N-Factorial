@@ -7,6 +7,9 @@ import java.awt.EventQueue;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
+import java.awt.Toolkit;
 import java.io.File;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -17,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.text.JTextComponent;
 
 import com.jgoodies.forms.layout.ColumnSpec;
 import com.jgoodies.forms.layout.FormLayout;
@@ -86,7 +90,6 @@ public class MainWindow extends JFrame
 		setBounds(100, 100, 450, 310);
 		setMinimumSize(new Dimension(350, 310));
 		
-		
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setLayout(new BorderLayout(0, 0));
@@ -127,9 +130,11 @@ public class MainWindow extends JFrame
 		{
 
 			@Override
-			public void actionPerformed(ActionEvent arg0)
+			public void actionPerformed(ActionEvent e)
 			{
-System.out.println("BLAH");
+				StringSelection stringSelection = new StringSelection (answerTotal.getText());
+				Clipboard clpbrd = Toolkit.getDefaultToolkit ().getSystemClipboard ();
+				clpbrd.setContents (stringSelection, null);
 			}
 		
 		});
@@ -222,6 +227,7 @@ System.out.println("BLAH");
 						answerTotalLength.setText(Integer.toString(answerTotal.getText().length()));
 						
 						btnCompute.setEnabled(true);
+						copyBtn.setEnabled(true);
 						btnCancel.setEnabled(false);
 					}
 				});
