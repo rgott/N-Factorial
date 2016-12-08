@@ -292,6 +292,7 @@ public class MainWindow extends JFrame
 					}
 				} catch (InterruptedException e)
 				{
+					startedProgess.setValue(startedProgess.getMinimum());
 					progressStatus.setText("Cancelled");
                                         queueStatus.setText("Cancelled");
 					e.printStackTrace();
@@ -319,6 +320,7 @@ public class MainWindow extends JFrame
 			} catch (InterruptedException e)
 			{
 				e.printStackTrace();
+				startedProgess.setValue(startedProgess.getMinimum());
 				progressStatus.setText("Cancelled");
                                 queueStatus.setText("Cancelled");
 				listSizeProgressBar.setValue(0);
@@ -341,6 +343,7 @@ public class MainWindow extends JFrame
 		try
 		{
 			masterCount.join();
+			startedProgess.setValue(startedProgess.getMaximum());
 			progressStatus.setText("Complete");
                         queueStatus.setText("");
 			listSizeProgressBar.setValue(0);
@@ -350,6 +353,7 @@ public class MainWindow extends JFrame
 			e.printStackTrace();
 		}
 		progressStatus.setText("Cancelled");
+		startedProgess.setValue(startedProgess.getMinimum());
                 queueStatus.setText("Cancelled");
 		listSizeProgressBar.setValue(0);
 		return null;
