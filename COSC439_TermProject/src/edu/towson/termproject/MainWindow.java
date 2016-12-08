@@ -44,7 +44,7 @@ public class MainWindow extends JFrame
 	
 	Thread numberFinderThread;
 	
-	SegmentedProgessBar startedProgress;
+	BigIntProgessBar startedProgress;
 	JProgressBar listSizeProgressBar;
 	
 	/**
@@ -125,15 +125,43 @@ public class MainWindow extends JFrame
 		floatRight.setLayout(new FlowLayout(FlowLayout.RIGHT));
 		
 		
+		JButton showInfo = new JButton("System Information");
+		showInfo.addActionListener(new ActionListener()
+		{
+			@Override
+			public void actionPerformed(ActionEvent e)
+			{
+				try
+				{
+					SystemInfo frame = new SystemInfo();
+					frame.setTitle("System Information");
+					try
+					{
+						frame.setIconImage(ImageIO.read(new File("Resource/mainwindowicon.png")));
+					}
+					catch(Exception ex)
+					{
+						System.out.println("Icon cannot be found");
+						ex.printStackTrace();
+						// The window will just not have an icon
+					}
+					
+					frame.setVisible(true);
+				} catch (Exception ex)
+				{
+					ex.printStackTrace();
+				}
+			}
+		});
+		floatRight.add(showInfo);
+		
+		
 		JButton copyBtn = new JButton("Copy");
 		copyBtn.addActionListener(new ActionListener()
 		{
 			@Override
 			public void actionPerformed(ActionEvent e)
 			{
-
-				
-				
 				StringSelection stringSelection = new StringSelection (answerTotal.getText());
 				Clipboard clpbrd = Toolkit.getDefaultToolkit ().getSystemClipboard ();
 				clpbrd.setContents (stringSelection, null);
@@ -238,7 +266,7 @@ public class MainWindow extends JFrame
 		progressStatus = new JLabel("");
 		panel.add(progressStatus,"1, 1");
 		
-		startedProgress = new SegmentedProgessBar(this,true);
+		startedProgress = new BigIntProgessBar(this,true);
 		startedProgress.setForeground(Color.green);
 		panel.add(startedProgress,"1, 2");
 		
@@ -254,7 +282,7 @@ public class MainWindow extends JFrame
 		elementsTillCleaned.setText("1000");
 	}
 	
-	public static BigInteger StartFind(SegmentedProgessBar startedProgess,JProgressBar listSizeProgressBar, BigInteger stripeSize,int threads, BigInteger factorial,int elementsTillClean)
+	public static BigInteger StartFind(BigIntProgessBar startedProgess,JProgressBar listSizeProgressBar, BigInteger stripeSize,int threads, BigInteger factorial,int elementsTillClean)
 	{
 		listSizeProgressBar.setMaximum(elementsTillClean);
 		listSizeProgressBar.setMinimum(0);
@@ -287,6 +315,8 @@ public class MainWindow extends JFrame
 				} catch (InterruptedException e)
 				{
 					progressStatus.setText("Cancelled");
+					startedProgess.setValue(startedProgess.getMinimum());
+					listSizeProgressBar.setValue(0);
 					e.printStackTrace();
 				}
 			}
@@ -313,6 +343,7 @@ public class MainWindow extends JFrame
 			{
 				e.printStackTrace();
 				progressStatus.setText("Cancelled");
+				startedProgess.setValue(startedProgess.getMinimum());
 				listSizeProgressBar.setValue(0);
 				return null; // Interruption is probably caused by user cancellation  
 			}
@@ -335,12 +366,14 @@ public class MainWindow extends JFrame
 			masterCount.join();
 			progressStatus.setText("Complete");
 			listSizeProgressBar.setValue(0);
+			startedProgess.setValue(startedProgess.getMaximum());
 			return masterCount.total;
 		} catch (InterruptedException e)
 		{
 			e.printStackTrace();
 		}
-		progressStatus.setText("Cancelled");			 
+		progressStatus.setText("Cancelled");	
+		startedProgess.setValue(startedProgess.getMinimum());
 		listSizeProgressBar.setValue(0);
 		return null;
 	}

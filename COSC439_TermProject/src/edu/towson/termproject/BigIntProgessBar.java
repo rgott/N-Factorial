@@ -6,7 +6,7 @@ import javax.swing.JFrame;
 import javax.swing.JProgressBar;
 
 @SuppressWarnings("serial")
-public class SegmentedProgessBar extends JProgressBar
+public class BigIntProgessBar extends JProgressBar
 {
 	BigInteger max;
 
@@ -20,7 +20,7 @@ public class SegmentedProgessBar extends JProgressBar
 	boolean reversed;
 	static final int HEIGHT = 23;
 	static final int MAXPROGRESS = 900;
-	public SegmentedProgessBar(JFrame frame, boolean reversed)
+	public BigIntProgessBar(JFrame frame, boolean reversed)
 	{
 		super(0,MAXPROGRESS);
 		this.frame = frame;
