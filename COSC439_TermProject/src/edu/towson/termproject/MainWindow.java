@@ -104,7 +104,7 @@ public class MainWindow extends JFrame
 		// Add fields for options
 		stripeSize = createField(fields, "Numbers per thread:");
 		numthreads = createField(fields, "Threads:");
-		elementsTillCleaned = createField(fields, "Elements till multiply set:");
+		elementsTillCleaned = createField(fields, "Elements in queue:");
 		factorialText = createField(fields, "Enter Factorial to find:");
 		
 		answerTotal = createField(fields, "Total:");
@@ -128,16 +128,13 @@ public class MainWindow extends JFrame
 		JButton copyBtn = new JButton("Copy");
 		copyBtn.addActionListener(new ActionListener()
 		{
-
 			@Override
 			public void actionPerformed(ActionEvent arg0)
 			{
-				System.out.println("BLAH");
 				StringSelection stringSelection = new StringSelection (answerTotal.getText());
 				Clipboard clpbrd = Toolkit.getDefaultToolkit ().getSystemClipboard ();
 				clpbrd.setContents (stringSelection, null);
 			}
-		
 		});
 		copyBtn.setEnabled(false);
 		floatRight.add(copyBtn);
@@ -217,7 +214,6 @@ public class MainWindow extends JFrame
 						btnCancel.setEnabled(false);
 					}
 				});
-				
 				btnCompute.setEnabled(false);
 				btnCancel.setEnabled(true);
 				
