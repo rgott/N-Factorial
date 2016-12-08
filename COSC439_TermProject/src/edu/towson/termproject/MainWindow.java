@@ -130,9 +130,9 @@ public class MainWindow extends JFrame
 		{
 
 			@Override
-			public void actionPerformed(ActionEvent arg0)
+			public void actionPerformed(ActionEvent e)
 			{
-				System.out.println("BLAH");
+				
 				StringSelection stringSelection = new StringSelection (answerTotal.getText());
 				Clipboard clpbrd = Toolkit.getDefaultToolkit ().getSystemClipboard ();
 				clpbrd.setContents (stringSelection, null);
@@ -220,6 +220,7 @@ public class MainWindow extends JFrame
 				
 				btnCompute.setEnabled(false);
 				btnCancel.setEnabled(true);
+				copyBtn.setEnabled(true);
 				
 				numberFinderThread.start();// start thread immediately
 			}
