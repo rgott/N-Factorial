@@ -4,9 +4,75 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:NFactorial"
+        MinHeight="350"
+        MinWidth="500"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="525">
-    <Grid>
-        
+        Title="N Factorial" Height="350" Width="525">
+    <Grid Margin="20,10">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="23"/>
+                <RowDefinition Height="23"/>
+                <RowDefinition Height="23"/>
+                <RowDefinition Height="23"/>
+                <RowDefinition Height="23"/>
+                <RowDefinition Height="23"/>
+                <RowDefinition Height="23"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="150"/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Row="0">Numbers per thread:</TextBlock>
+            <TextBox Grid.Column="1" Grid.Row="0" Text="{Binding NumberCountPerThread}"/>
+
+            <TextBlock Grid.Row="1">Threads:</TextBlock>
+            <TextBox Grid.Column="1" Grid.Row="1" Text="{Binding ThreadCount}"/>
+
+            <TextBlock Grid.Row="2">Elements in queue:</TextBlock>
+            <TextBox Grid.Column="1" Grid.Row="2" Text="{Binding MaxElementQueueCount}"/>
+
+            <TextBlock Grid.Row="3">Enter num to factorialize:</TextBlock>
+            <TextBox Grid.Column="1" Grid.Row="3" Text="{Binding FactorialInput}"/>
+
+            <TextBlock Grid.Row="4">Factorial Found:</TextBlock>
+            <TextBox Grid.Column="1" Grid.Row="4" IsEnabled="False" Text="{Binding FactorialOutput}"/>
+
+            <TextBlock Grid.Row="5">Factorial Length:</TextBlock>
+            <TextBox Grid.Column="1" Grid.Row="5" IsEnabled="False" Text="{Binding FactorialOutputLength}"/>
+
+            <TextBlock Grid.Row="6">Time taken:</TextBlock>
+            <TextBox Grid.Column="1" Grid.Row="6" IsEnabled="False" Text="{Binding TimeTaken}"/>
+        </Grid>
+        <Grid VerticalAlignment="Bottom" Margin="10 0 10 100">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Button Content="Copy" Grid.Column="0"/>
+            <Button Content="Cancel" Grid.Column="1"/>
+            <Button Content="Compute" Grid.Column="2"/>
+        </Grid>
+        <StackPanel VerticalAlignment="Bottom">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="23"/>
+                    <RowDefinition Height="23"/>
+                </Grid.RowDefinitions>
+                <TextBlock Text="{Binding PartialProgressStatus,FallbackValue=Loading...}"/>
+                <ProgressBar VerticalAlignment="Top" Height="15" Grid.Row="1" Value="{Binding PartialProgressValue}" Maximum="{Binding PartialProgressMaximum}"/>
+            </Grid>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="23"/>
+                    <RowDefinition Height="23"/>
+                </Grid.RowDefinitions>
+                <TextBlock Text="{Binding TotalProgressStatus,FallbackValue=Loading...}"/>
+                <ProgressBar VerticalAlignment="Top" Height="15" Grid.Row="1" Value="{Binding TotalProgressValue}" Maximum="{Binding TotalProgressMaximum}"/>
+            </Grid>
+        </StackPanel>
     </Grid>
 </Window>
