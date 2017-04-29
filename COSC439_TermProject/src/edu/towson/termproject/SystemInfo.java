@@ -1,6 +1,5 @@
 package edu.towson.termproject;
 
-import java.awt.BorderLayout;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -9,7 +8,6 @@ import java.util.LinkedList;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
 import javax.swing.Timer;
 import javax.swing.border.EmptyBorder;
 
@@ -21,6 +19,7 @@ import com.jgoodies.forms.layout.RowSpec;
 public class SystemInfo extends JFrame
 {
 
+	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
 
 	/**
@@ -60,9 +59,9 @@ public class SystemInfo extends JFrame
 		setFormLayout(contentPane, 7);
 		
 		
-		JLabel version = createField(contentPane, "Windows Version:",os.getVersion());
-		JLabel processors = createField(contentPane, "Processors:",Integer.toString(os.getAvailableProcessors()));
-		JLabel cvms = createField(contentPane, "Commited Virtual memory size:",Long.toString(os.getCommittedVirtualMemorySize()));
+		createField(contentPane, "Windows Version:",os.getVersion());
+		createField(contentPane, "Processors:",Integer.toString(os.getAvailableProcessors()));
+		createField(contentPane, "Commited Virtual memory size:",Long.toString(os.getCommittedVirtualMemorySize()));
 		JLabel physical = createField(contentPane, "Physical memory(mb)", "Loading...");
 		JLabel cpuLoad = createField(contentPane, "CPU load","Loading...");
 		

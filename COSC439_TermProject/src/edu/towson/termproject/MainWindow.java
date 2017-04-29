@@ -30,23 +30,11 @@ public class MainWindow extends JFrame
 {
 	private JPanel contentPane;
 	static JLabel progressStatus;
-        static JLabel queueStatus;
+    static JLabel queueStatus;
 	
-	JTextField stripeSize;
-	JTextField numthreads;
-	JTextField factorialText;
-	JTextField elementsTillCleaned;
-	JTextField answerTotal;
-	JTextField answerTotalLength;
-	JTextField timeTaken;
-	
-	JButton btnCompute;
-	JButton btnCancel;
+    JButton btnCompute;
 	
 	Thread numberFinderThread;
-	
-	BigIntProgessBar startedProgress;
-	JProgressBar listSizeProgressBar;
 	
 	/**
 	 * Launch the application.
@@ -103,20 +91,20 @@ public class MainWindow extends JFrame
 		setFormLayout(fields, 7);
 		
 		// Add fields for options
-		stripeSize = createField(fields, "Numbers per thread:");
-		numthreads = createField(fields, "Threads:");
-		elementsTillCleaned = createField(fields, "Elements in queue:");
-		factorialText = createField(fields, "Enter num to Factorialize:");
+		JTextField stripeSize = createField(fields, "Numbers per thread:");
+		JTextField numthreads = createField(fields, "Threads:");
+		JTextField elementsTillCleaned = createField(fields, "Elements in queue:");
+		JTextField factorialText = createField(fields, "Enter num to Factorialize:");
 		
-		answerTotal = createField(fields, "Factorial Found:");
+		JTextField answerTotal = createField(fields, "Factorial Found:");
 		answerTotal.setEditable(false);
 		answerTotal.setInputVerifier(null);
 		
-		answerTotalLength = createField(fields, "Factorial Length:");
+		JTextField answerTotalLength = createField(fields, "Factorial Length:");
 		answerTotalLength.setEditable(false);
 		answerTotalLength.setInputVerifier(null);
 		
-		timeTaken = createField(fields, "Time taken:");
+		JTextField timeTaken = createField(fields, "Time taken:");
 		timeTaken.setEditable(false);
 		timeTaken.setInputVerifier(null);
 		
@@ -161,9 +149,6 @@ public class MainWindow extends JFrame
 			@Override
 			public void actionPerformed(ActionEvent e)
 			{
-
-				
-				
 				StringSelection stringSelection = new StringSelection (answerTotal.getText());
 				Clipboard clpbrd = Toolkit.getDefaultToolkit ().getSystemClipboard ();
 				clpbrd.setContents (stringSelection, null);
@@ -172,7 +157,11 @@ public class MainWindow extends JFrame
 		copyBtn.setEnabled(false);
 		floatRight.add(copyBtn);
 		
-		btnCancel = new JButton("Cancel");
+		
+		BigIntProgessBar startedProgress = new BigIntProgessBar(this,true);
+		startedProgress.setForeground(Color.green);
+		
+		JButton btnCancel = new JButton("Cancel");
 		btnCancel.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent arg0)
@@ -191,12 +180,14 @@ public class MainWindow extends JFrame
 		btnCancel.setEnabled(false);
 		floatRight.add(btnCancel);
 		
+		JProgressBar listSizeProgressBar = new JProgressBar();
+		listSizeProgressBar.setForeground(Color.yellow);
+		
 		btnCompute = new JButton("Compute");
 		btnCompute.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent arg0)
 			{
-				
 				// if any fields are empty then do not compute
 				if(factorialText.getText().isEmpty() || numthreads.getText().isEmpty() || stripeSize.getText().isEmpty())
 				{
@@ -205,7 +196,7 @@ public class MainWindow extends JFrame
 				}
 				
 				progressStatus.setText("");
-                                queueStatus.setText("");
+				queueStatus.setText("");
 				answerTotal.setText("");
 				btnCompute.setEnabled(false);
 				
@@ -266,19 +257,14 @@ public class MainWindow extends JFrame
 				new ColumnSpec[]{ColumnSpec.decode("150px:grow")},
 				new RowSpec[]{ FormSpecs.DEFAULT_ROWSPEC,FormSpecs.DEFAULT_ROWSPEC,FormSpecs.DEFAULT_ROWSPEC,FormSpecs.DEFAULT_ROWSPEC}));
 		queueStatus = new JLabel("");
-                panel.add(queueStatus,"1, 1");
-		listSizeProgressBar = new JProgressBar();
-		listSizeProgressBar.setForeground(Color.yellow);
+        panel.add(queueStatus,"1, 1");
+                
 		panel.add(listSizeProgressBar,"1,2");
 		
                 progressStatus = new JLabel("");
 		panel.add(progressStatus,"1, 3");
 		
-		startedProgress = new BigIntProgessBar(this,true);
-		startedProgress.setForeground(Color.green);
 		panel.add(startedProgress,"1, 4");
-		
-                
 		
 		contentPane.add(panel,BorderLayout.SOUTH);
 		
@@ -288,7 +274,7 @@ public class MainWindow extends JFrame
 		elementsTillCleaned.setText("1000");
 	}
 	
-	public static BigInteger StartFind(BigIntProgessBar startedProgess,JProgressBar listSizeProgressBar, BigInteger stripeSize,int threads, BigInteger factorial,int elementsTillClean)
+	public static BigInteger StartFind(BigIntProgessBar startedProgess, JProgressBar listSizeProgressBar, BigInteger stripeSize,int threads, BigInteger factorial, int elementsTillClean)
 	{
 		listSizeProgressBar.setMaximum(elementsTillClean);
 		listSizeProgressBar.setMinimum(0);
@@ -383,7 +369,7 @@ public class MainWindow extends JFrame
 		}
 		progressStatus.setText("Cancelled");
 		startedProgess.setValue(startedProgess.getMinimum());
-                queueStatus.setText("Cancelled");
+        queueStatus.setText("Cancelled");
 		listSizeProgressBar.setValue(0);
 		return null;
 	}
@@ -408,7 +394,6 @@ public class MainWindow extends JFrame
 					concurrencyList.put(total);
 				} catch (InterruptedException e)
 				{
-					System.out.println("SOMETHING WENT WRONG WITHIN A THREAD.");
 					e.printStackTrace();
 				}
 				signal.release();
@@ -433,7 +418,7 @@ public class MainWindow extends JFrame
 		return textField;
 	}
 	
-	public void setFormLayout(JPanel panel, int rows)
+	public static void setFormLayout(JPanel panel, int rows)
 	{
 		// create row specification
 		LinkedList<RowSpec> rowSpec = new LinkedList<>();
