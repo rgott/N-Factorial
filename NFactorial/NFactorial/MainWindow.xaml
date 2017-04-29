@@ -62,7 +62,7 @@
                     <RowDefinition Height="23"/>
                     <RowDefinition Height="23"/>
                 </Grid.RowDefinitions>
-                <TextBlock Text="{Binding PartialProgressStatus,FallbackValue=Loading...}"/>
+                <TextBlock Text="{Binding PartialProgressStatus,FallbackValue=Loading..., Mode=TwoWay}"/>
                 <ProgressBar VerticalAlignment="Top" Height="15" Grid.Row="1" Value="{Binding PartialProgressValue}" Maximum="{Binding PartialProgressMaximum}"/>
             </Grid>
             <Grid>
@@ -70,7 +70,7 @@
                     <RowDefinition Height="23"/>
                     <RowDefinition Height="23"/>
                 </Grid.RowDefinitions>
-                <TextBlock Text="{Binding TotalProgressStatus,FallbackValue=Loading...}"/>
+                <TextBlock Text="{Binding TotalProgressStatus,FallbackValue=Loading..., Mode=TwoWay}"/>
                 <ProgressBar VerticalAlignment="Top" Height="15" Grid.Row="1" Value="{Binding TotalProgressValue}" Maximum="{Binding TotalProgressMaximum}"/>
             </Grid>
         </StackPanel>

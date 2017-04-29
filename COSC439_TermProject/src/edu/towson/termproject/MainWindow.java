@@ -294,22 +294,20 @@ public class MainWindow extends JFrame
 					total = new BigInteger("1");// must be one because its multiplied 1*x = x
 					
 					BigInteger[] result = factorial.divideAndRemainder(stripeSize);
-					BigInteger i = result[0].add((result[1].compareTo(BigInteger.ZERO) == 0)?BigInteger.ZERO:BigInteger.ONE);
-                                        result = null; // make it easy for garbage collector
 					
 //					System.out.println(i); // number of thread that will run
-					while(i.compareTo(BigInteger.ZERO) == 1)
+					while(result[1].compareTo(BigInteger.ZERO) == 1)
 					{
 						total = total.multiply(list.take());
 						listSizeProgressBar.setValue(listSizeProgressBar.getValue() - 1);
-                                                queueStatus.setText("Threads Appending");
-						i = i.subtract(BigInteger.ONE);
+                        queueStatus.setText("Threads Appending");
+						result[1] = result[1].subtract(BigInteger.ONE);
 					}
 				} catch (InterruptedException e)
 				{
 					startedProgess.setValue(startedProgess.getMinimum());
 					progressStatus.setText("Cancelled");
-                                        queueStatus.setText("Cancelled");
+                    queueStatus.setText("Cancelled");
 					e.printStackTrace();
 				}
 			}
@@ -337,7 +335,7 @@ public class MainWindow extends JFrame
 				e.printStackTrace();
 				startedProgess.setValue(startedProgess.getMinimum());
 				progressStatus.setText("Cancelled");
-                                queueStatus.setText("Cancelled");
+            	queueStatus.setText("Cancelled");
 				listSizeProgressBar.setValue(0);
 				return null; // Interruption is probably caused by user cancellation  
 			}
@@ -360,7 +358,7 @@ public class MainWindow extends JFrame
 			masterCount.join();
 			startedProgess.setValue(startedProgess.getMaximum());
 			progressStatus.setText("Complete");
-                        queueStatus.setText("");
+            queueStatus.setText("");
 			listSizeProgressBar.setValue(0);
 			return masterCount.total;
 		} catch (InterruptedException e)
