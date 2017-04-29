@@ -52,9 +52,9 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <Button Content="Copy" Grid.Column="0"/>
-            <Button Content="Cancel" Grid.Column="1"/>
-            <Button Content="Compute" Grid.Column="2"/>
+            <Button Content="Copy" Grid.Column="0" Command="{Binding CopyCmd}"/>
+            <Button Content="Cancel" Grid.Column="1" Command="{Binding CancelCmd}"/>
+            <Button Content="Compute" Grid.Column="2" Command="{Binding ComputeCmd}"/>
         </Grid>
         <StackPanel VerticalAlignment="Bottom">
             <Grid>
