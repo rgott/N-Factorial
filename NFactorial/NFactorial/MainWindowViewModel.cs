@@ -5,37 +5,61 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Collections.Concurrent;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Windows;
 
 namespace NFactorial
 {
     public class MainWindowViewModel : ViewModelBase
     {
-        public int NumberCountPerThread { get; set; } = 100;
-        public int ThreadCount { get; set; } = 10;
-        public int MaxElementQueueCount { get; set; } = 1000;
-        public int FactorialInput { get; set; } = 5;
-        public BigInteger FactorialOutput { get; set; }
-        public int FactorialOutputLength { get; set; }
-        public long TimeTaken { get; set; }
+        public int FactorialInput { get; set; } = 123456;
 
-        private string _PartialProgressStatus;
-        public string PartialProgressStatus
+        public BigInteger _FactorialOutput;
+        public BigInteger FactorialOutput
         {
             get
             {
-                return _PartialProgressStatus;
+                return _FactorialOutput;
             }
             set
             {
-                _PartialProgressStatus = value;
+                _FactorialOutput = value;
                 RaisePropertyChanged();
             }
         }
-        public int PartialProgressValue { get; set; }
-        public int PartialProgressMaximum { get; set; }
+
+        public int _FactorialOutputLength;
+        public int FactorialOutputLength
+        {
+            get
+            {
+                return _FactorialOutputLength;
+            }
+            set
+            {
+                _FactorialOutputLength = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        private long _TimeTaken;
+        public long TimeTaken
+        {
+            get
+            {
+                return _TimeTaken;
+            }
+            set
+            {
+                _TimeTaken = value;
+                RaisePropertyChanged();
+            }
+        }
 
         private string _TotalProgressStatus;
         public string TotalProgressStatus
@@ -50,15 +74,40 @@ namespace NFactorial
                 RaisePropertyChanged();
             }
         }
-        public int TotalProgressValue { get; set; }
-        public int TotalProgressMaximum { get; set; }
+
+        private int _TotalProgressValue;
+        public int TotalProgressValue
+        {
+            get
+            {
+                return _TotalProgressValue;
+            }
+            set
+            {
+                _TotalProgressValue = value;
+                RaisePropertyChanged();
+            }
+        }
+        private int _TotalProgressMaximum;
+        public int TotalProgressMaximum
+        {
+            get
+            {
+                return _TotalProgressMaximum;
+            }
+            set
+            {
+                _TotalProgressMaximum = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        public CancellationTokenSource CancellationToken { get; set; }
 
         public ICommand CopyCmd { get; set; }
         public ICommand CancelCmd { get; set; }
         public ICommand ComputeCmd { get; set; }
-
-
-        private ConcurrentQueue<BigInteger> ThreadStorage = new ConcurrentQueue<BigInteger>();
+        
 
         public MainWindowViewModel()
         {
@@ -69,27 +118,61 @@ namespace NFactorial
 
         private void Copy()
         {
-            throw new NotImplementedException();
+            Clipboard.SetText(FactorialOutput.ToString());
         }
 
         private void Cancel()
         {
-            throw new NotImplementedException();
+            CancellationToken.Cancel();
         }
 
         private void Compute()
         {
             TotalProgressMaximum = FactorialInput;
             TotalProgressStatus = "STARTING";
-
+            TotalProgressValue = 0;
             FactorialOutput = BigInteger.One;
-            while (FactorialInput != 0)
+
+            CancellationToken = new CancellationTokenSource();
+            
+            BackgroundWorker bw = new BackgroundWorker();
+            bw.DoWork += Bw_DoWork;
+            bw.RunWorkerAsync();
+        }
+
+        private void Bw_DoWork(object sender, DoWorkEventArgs e)
+        {
+            Stopwatch timer = new Stopwatch();
+            timer.Start();
+
+            var next = NextNumber(FactorialInput);
+
+            try
             {
-                FactorialOutput *= FactorialInput;
-                FactorialInput -= 1;
-                TotalProgressValue = FactorialInput;
+                FactorialOutput = next
+                    .AsParallel()
+                    .WithCancellation(CancellationToken.Token)
+                    .Aggregate(BigInteger.One, (num1, num2) =>
+                {
+                    TotalProgressValue++;
+                    return num1 * num2;
+                });
+            } catch (OperationCanceledException)
+            {
+                TotalProgressStatus = "Cancelled";
+                return;
             }
-            TotalProgressStatus = "STOPPING";
+
+            FactorialOutputLength = FactorialOutput.ToString().Length;
+            TotalProgressStatus = "Finished";
+
+            timer.Stop();
+            TimeTaken = timer.ElapsedMilliseconds;
+
+            IEnumerable<BigInteger> NextNumber(BigInteger num)
+            {
+                while (!num.IsZero) yield return num--;
+            }
         }
     }
 }
